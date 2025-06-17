@@ -22,6 +22,7 @@ const App = () => {
     setWarning("");
     localStorage.setItem("my-vscode-note", note);
     setSavedNote(note);
+    alert("✅ Note Saved!");
     setNote("");
   };
 
