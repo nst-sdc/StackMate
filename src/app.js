@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 const App = () => {
   const [note, setNote] = useState("");
   const [savedNote, setSavedNote] = useState("");
-  const [warning, setWarning] = useState("")
-
+  const [warning, setWarning] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("my-vscode-note");
@@ -15,34 +15,59 @@ const App = () => {
   }, []);
 
   const handleSave = () => {
-
     if (note.trim() === "") {
-      setWarning("Cannot Save empty note!")
-      return
+      setWarning("Cannot save an empty note!");
+      return;
     }
-
-    setWarning("")
+    setWarning("");
     localStorage.setItem("my-vscode-note", note);
     setSavedNote(note);
-    setNote("")
+    setNote("");
   };
 
   const handleClear = () => {
     localStorage.removeItem("my-vscode-note");
     setNote("");
     setSavedNote("");
-    setWarning("")
+    setWarning("");
+  };
+
+  const styleContainer = {
+    ...styles.container,
+    backgroundColor: darkMode ? "#121212" : "#f5f5f5",
+    color: darkMode ? "#ffffff" : "#000000",
+  };
+
+  const styleTextArea = {
+    ...styles.textarea,
+    backgroundColor: darkMode ? "#1e1e1e" : "#fff",
+    color: darkMode ? "#fff" : "#000",
+    border: darkMode ? "1px solid #555" : "1px solid #ccc",
+  };
+
+  const styleToggleButton = {
+    ...styles.toggleBtn,
+    backgroundColor: darkMode ? "#333" : "#eee",
+    color: darkMode ? "#fff" : "#000",
+  };
+
+  const styleSavedNotes = {
+    ...styles.saved,
+    backgroundColor: darkMode ? "#1e1e1e" : "#fff",
+    color: darkMode ? "#fff" : "#000",
+    border: darkMode ? "1px solid #555" : "1px solid #ccc",
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styleContainer}>
       <h2 style={styles.heading}>📝 VS Code Notes</h2>
       <textarea
         placeholder="Write your thoughts..."
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        style={styles.textarea}
+        style={styleTextArea}
       ></textarea>
+
       <div style={styles.buttonContainer}>
         <button onClick={handleSave} style={styles.saveBtn}>
           💾 Save Note
@@ -50,12 +75,18 @@ const App = () => {
         <button onClick={handleClear} style={styles.clearBtn}>
           🧹 Clear
         </button>
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          style={styleToggleButton}
+        >
+          {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+        </button>
       </div>
 
       {warning && <div style={styles.warning}>{warning}</div>}
 
       {savedNote && (
-        <div style={styles.saved}>
+        <div style={styleSavedNotes}>
           <strong>🗒️ Saved Note:</strong>
           <p>{savedNote}</p>
         </div>
@@ -68,7 +99,6 @@ const styles = {
   container: {
     fontFamily: "sans-serif",
     padding: "20px",
-    backgroundColor: "#f5f5f5",
     minHeight: "100vh",
   },
   heading: {
@@ -81,13 +111,13 @@ const styles = {
     padding: "10px",
     fontSize: "16px",
     borderRadius: "6px",
-    border: "1px solid #ccc",
     resize: "vertical",
   },
   buttonContainer: {
     marginTop: "10px",
     display: "flex",
     gap: "10px",
+    flexWrap: "wrap",
   },
   saveBtn: {
     backgroundColor: "#4CAF50",
@@ -105,19 +135,23 @@ const styles = {
     borderRadius: "6px",
     cursor: "pointer",
   },
+  toggleBtn: {
+    border: "none",
+    padding: "10px 15px",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
   saved: {
     marginTop: "20px",
-    backgroundColor: "#fff",
     padding: "10px",
     borderRadius: "6px",
-    border: "1px solid #ccc",
   },
   warning: {
     color: "#cc3300",
     margin: "30px 30px",
     fontWeight: "bold",
-    fontSize: "20px"
-  }
+    fontSize: "18px",
+  },
 };
 
 export default App;
