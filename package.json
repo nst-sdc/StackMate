@@ -1,29 +1,46 @@
 {
   "name": "react-webview-extension",
-  "displayName": "React Webview Extension",
-  "description": "A simple VS Code extension using React in Webview.",
+  "displayName": "React Webview + Note Tags",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.80.0"
   },
-  "activationEvents": [],
-  "main": "extension.js",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCommand:extension.showReactWebview",
+    "onCommand:noteTags.refresh",
+    "onCommand:noteTags.filterByTag",
+    "onView:noteTags",
+    "*"
+  ],
   "contributes": {
     "commands": [
       {
         "command": "extension.showReactWebview",
         "title": "Show React Webview"
+      },
+      {
+        "command": "noteTags.refresh",
+        "title": "Refresh Note Tags"
+      },
+      {
+        "command": "noteTags.filterByTag",
+        "title": "Filter Notes by Tag"
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "noteTags",
+          "name": "Notes by Tag"
+        }
+      ]
+    }
   },
-"scripts": {
-  "build": "webpack",
-  "watch": "webpack --watch"
-}
-,
-  "categories": [
-    "Other"
-  ],
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
