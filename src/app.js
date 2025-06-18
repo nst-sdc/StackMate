@@ -117,8 +117,6 @@ const App = () => {
   const [selectedColor, setSelectedColor] = useState("#2B77BD");
   const [colorFormat, setColorFormat] = useState("hex");
   const [devTip, setDevTip] = useState("");
-
-  // JSON Validator states
   const [jsonInput, setJsonInput] = useState("");
   const [jsonValidationResult, setJsonValidationResult] = useState("");
   const [beautifiedJson, setBeautifiedJson] = useState("");
@@ -294,7 +292,7 @@ const App = () => {
         >
           <option value="english">English</option>
           <option value="hindi">हिन्दी</option>
-          <option value="spanish">Española</option>
+          <option value="spanish">Español</option>
         </select>
       </div>
 
@@ -349,6 +347,8 @@ const App = () => {
         </div>
       )}
 
+      {/* Rest of the component remains the same */}
+      {/* JSON Validator section */}
       <div style={{
         marginTop: "40px",
         padding: "25px",
@@ -368,6 +368,7 @@ const App = () => {
           🔧 {translations[language].jsonValidator}
         </h3>
 
+        {/* JSON input textarea */}
         <textarea
           placeholder={translations[language].jsonPlaceholder}
           value={jsonInput}
@@ -388,6 +389,7 @@ const App = () => {
           }}
         ></textarea>
 
+        {/* JSON action buttons */}
         <div style={{
           marginTop: "15px",
           display: "flex",
@@ -406,6 +408,7 @@ const App = () => {
           </button>
         </div>
 
+        {/* JSON validation result */}
         {jsonValidationResult && (
           <div style={{
             marginTop: "20px",
@@ -422,6 +425,7 @@ const App = () => {
           </div>
         )}
 
+        {/* Beautified JSON output */}
         {beautifiedJson && isJsonValid && (
           <div style={{
             marginTop: "25px",
@@ -469,6 +473,7 @@ const App = () => {
         )}
       </div>
 
+      {/* Color picker section */}
       <div style={{ marginTop: "30px" }}>
         <label
           htmlFor="colorPicker"
@@ -511,11 +516,6 @@ const styles = {
     fontSize: "24px",
     marginBottom: "10px",
     textAlign: "center",
-  },
-  sectionHeading: {
-    fontSize: "18px",
-    marginBottom: "15px",
-    color: "#2B77BD",
   },
   textarea: {
     width: "100%",
@@ -592,34 +592,6 @@ const styles = {
     padding: "10px",
     borderRadius: "6px",
   },
-  jsonSection: {
-    marginTop: "30px",
-    padding: "20px",
-    borderRadius: "8px",
-  },
-  validationResult: {
-    marginTop: "15px",
-    padding: "12px",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    fontSize: "14px",
-  },
-  beautifiedHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "10px",
-  },
-  beautifiedJson: {
-    padding: "15px",
-    borderRadius: "6px",
-    fontSize: "14px",
-    fontFamily: "Consolas, Monaco, 'Courier New', monospace",
-    overflow: "auto",
-    maxHeight: "400px",
-    whiteSpace: "pre-wrap",
-    wordWrap: "break-word",
-  },
   warning: {
     color: "#cc3300",
     margin: "30px 0",
@@ -684,6 +656,17 @@ const styles = {
     fontWeight: "700",
     letterSpacing: "0.1px",
     color: "#FFFFFF",
+  },
+  languageContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+  },
+  select: {
+    border: "2px solid #ccc",
+    borderRadius: "4px",
+    padding: "8px",
   },
 };
 
