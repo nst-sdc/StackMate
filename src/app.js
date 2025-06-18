@@ -1,10 +1,38 @@
 import React, { useState, useEffect } from "react";
 
+const translations = {
+  english: {
+    title: "VS Code Notes",
+    placeholder: "Write your thoughts...",
+    saveButton: "Save Note",
+    clearButton: "Clear",
+    saveNote: "Saved Note",
+    languageLabel: "Language:",
+  },
+  hindi: {
+    title: "VS कोड नोट्स",
+    placeholder: "अपने विचार लिखें...",
+    saveButton: "नोट सहेजें",
+    clearButton: "साफ करें",
+    saveNote: "सहेजा गया नोट",
+    languageLabel: "भाषा:",
+  },
+  spanish: {
+    title: "Notas de VS Code",
+    placeholder: "Escribe tus pensamientos...",
+    saveButton: "Guardar Nota",
+    clearButton: "Borrar",
+    saveNote: "Nota guardada",
+    languageLabel: "Idioma:",
+  },
+};
+
 const App = () => {
   const [note, setNote] = useState("");
   const [savedNote, setSavedNote] = useState("");
   const [warning, setWarning] = useState("");
   const [darkMode, setDarkMode] = useState(false);
+  const [language, setLanguage] = useState("english");
 
   useEffect(() => {
     const saved = localStorage.getItem("my-vscode-note");
@@ -22,6 +50,7 @@ const App = () => {
     setWarning("");
     localStorage.setItem("my-vscode-note", note);
     setSavedNote(note);
+    alert("✅ Note Saved!");
     setNote("");
   };
 
@@ -60,9 +89,23 @@ const App = () => {
 
   return (
     <div style={styleContainer}>
-      <h2 style={styles.heading}>📝 VS Code Notes</h2>
+      <h2 style={styles.heading}>📝 {translations[language].title}</h2>
+
+      <div style={styles.languageContainer}>
+        <h3>{translations[language].languageLabel}:</h3>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          style={styles.select}
+        >
+          <option value="english">English</option>
+          <option value="hindi">हिन्दी</option>
+          <option value="spanish">española</option>
+        </select>
+      </div>
+
       <textarea
-        placeholder="Write your thoughts..."
+        placeholder={translations[language].placeholder}
         value={note}
         onChange={(e) => setNote(e.target.value)}
         style={styleTextArea}
@@ -70,10 +113,10 @@ const App = () => {
 
       <div style={styles.buttonContainer}>
         <button onClick={handleSave} style={styles.saveBtn}>
-          💾 Save Note
+          💾 {translations[language].saveButton}
         </button>
         <button onClick={handleClear} style={styles.clearBtn}>
-          🧹 Clear
+          🧹 {translations[language].clearButton}
         </button>
         <button
           onClick={() => setDarkMode(!darkMode)}
@@ -87,7 +130,7 @@ const App = () => {
 
       {savedNote && (
         <div style={styleSavedNotes}>
-          <strong>🗒️ Saved Note:</strong>
+          <strong>🗒️ {translations[language].saveNote}:</strong>
           <p>{savedNote}</p>
         </div>
       )}
@@ -104,6 +147,7 @@ const styles = {
   heading: {
     fontSize: "24px",
     marginBottom: "10px",
+    textAlign: "center",
   },
   textarea: {
     width: "100%",
@@ -151,6 +195,17 @@ const styles = {
     margin: "30px 30px",
     fontWeight: "bold",
     fontSize: "18px",
+  },
+  languageContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+  },
+  select: {
+    border: "2px solid #ccc",
+    borderRadius: "4px",
+    padding: "8px",
   },
 };
 
