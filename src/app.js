@@ -22,8 +22,36 @@ const translations = {
     placeholder: "Escribe tus pensamientos...",
     saveButton: "Guardar Nota",
     clearButton: "Borrar",
+    saveNote: "Nota guardada",
     languageLabel: "Idioma:",
   },
+};
+const devTips = [
+  "Use meaningful variable names to improve code readability, e.g., `userCount` instead of `x`.",
+  "Break down complex functions into smaller, single-purpose functions for better maintainability.",
+  "Leverage version control (e.g., Git) and commit frequently with clear messages to track changes effectively.",
+  "Write unit tests to catch bugs early and ensure your code behaves as expected.",
+  "Use comments sparingly; focus on making your code self-explanatory through clear structure and naming.",
+  "Learn keyboard shortcuts for your IDE to boost productivity, like Ctrl+Shift+F for global search.",
+  "Regularly refactor your code to eliminate technical debt and improve performance.",
+  "Use linters and formatters (e.g., ESLint, Prettier) to enforce consistent coding styles.",
+  "Understand time complexity (e.g., O(n) vs O(n²)) to write efficient algorithms.",
+  "Back up your work regularly and use cloud storage to prevent data loss.",
+  "Practice defensive programming by validating inputs to prevent unexpected errors.",
+  "Keep your dependencies updated, but test thoroughly to avoid breaking changes.",
+  "Use environment variables to store sensitive data like API keys securely.",
+  "Profile your application to identify and optimize performance bottlenecks.",
+  "Read documentation thoroughly before integrating a new library or framework.",
+  "Pair program with a colleague to share knowledge and catch mistakes early.",
+  "Use `const` by default in JavaScript, and only use `let` when reassignment is needed.",
+  "Learn to use debugging tools like breakpoints and watch variables to troubleshoot effectively.",
+  "Write clear error messages that help users understand and resolve issues.",
+  "Stay curious and experiment with new tools or languages to broaden your skillset.",
+];
+
+const getRandomTip = () => {
+  const index = Math.floor(Math.random() * devTips.length);
+  return devTips[index];
 };
 
 const App = () => {
@@ -31,6 +59,7 @@ const App = () => {
   const [savedNote, setSavedNote] = useState("");
   const [warning, setWarning] = useState("");
   const [language, setLanguage] = useState("english");
+  const [devTip, setDevTip] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("my-vscode-note");
@@ -59,12 +88,15 @@ const App = () => {
     setSavedNote("");
     setWarning("");
   };
+  useEffect(() => {
+    setDevTip(getRandomTip);
+  }, []);
 
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>📝 {translations[language].title}</h2>
       <div style={styles.languageContainer}>
-        <h3>{translations[language].languageLabel}:</h3>
+        <h3>{translations[language].languageLabel}</h3>
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
@@ -74,6 +106,10 @@ const App = () => {
           <option value="hindi">हिन्दी</option>
           <option value="spanish">española</option>
         </select>
+      </div>
+      <div style={styles.devTipContainer}>
+        <h3 style={styles.devHeading}>dev TIPS</h3>
+        <p>{devTip}</p>
       </div>
 
       <textarea
@@ -168,6 +204,24 @@ const styles = {
     border: "2px solid #ccc",
     borderRadius: "4px",
     padding: "8px",
+  },
+  devTipContainer: {
+    textAlign: "center",
+    padding: "5px 20px",
+    fontSize: "18px",
+    fontWeight: "600",
+    backgroundImage: `url("https://i.ibb.co/hFhHCgNV/background.png")`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    borderRadius: "12px",
+    margin: "30px 0",
+    color: "#374151",
+  },
+  devHeading: {
+    fontFamily: "'Georgia', serif",
+    fontWeight: "700",
+    letterSpacing: "0.5px",
   },
 };
 

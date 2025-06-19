@@ -16,11 +16,10 @@
       }
     ]
   },
-"scripts": {
-  "build": "webpack",
-  "watch": "webpack --watch"
-}
-,
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
   "categories": [
     "Other"
   ],
@@ -33,6 +32,7 @@
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
     "babel-loader": "^10.0.0",
+    "url-loader": "^4.1.1",
     "webpack-cli": "^6.0.1"
   }
 }
