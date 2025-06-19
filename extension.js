@@ -18,8 +18,8 @@ function extractTags(text) {
 function scanDocument(doc) {
   if (doc.languageId !== "markdown") return;
   const tags = extractTags(doc.getText());
-  tagMap.set(doc.uri.toString(), tags)
-   provider.refresh(); ;
+  tagMap.set(doc.uri.toString(), tags);
+  provider.refresh();
 }
 
 // ─── Tree View Provider ────────────────────────────────────────────────────
@@ -58,9 +58,11 @@ class TagTreeProvider {
 
 // ─── Extension Activation ──────────────────────────────────────────────────
 
+let provider;
+
 function activate(context) {
-  // Insert your existing webview command here
-  let disposable = vscode.commands.registerCommand("extension.showReactWebview", function () {
+  // Webview command
+  const disposable = vscode.commands.registerCommand("extension.showReactWebview", function () {
     const panel = vscode.window.createWebviewPanel(
       "reactWebview",
       "React Webview",
@@ -70,20 +72,19 @@ function activate(context) {
         localResourceRoots: [vscode.Uri.file(path.join(__dirname, "dist"))],
       }
     );
-    // your getWebviewContent(...) remains unchanged
     panel.webview.html = getWebviewContent(panel);
   });
   context.subscriptions.push(disposable);
 
-  // Integrate Tag Detection
+  // Tag detection
   context.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument(scanDocument),
     vscode.workspace.onDidSaveTextDocument(scanDocument)
   );
   vscode.workspace.textDocuments.forEach(scanDocument);
 
-  // Set up Tree View for tags
-  const provider = new TagTreeProvider();
+  // Tree view setup
+  provider = new TagTreeProvider();
   vscode.window.registerTreeDataProvider("noteTags", provider);
   context.subscriptions.push(
     vscode.commands.registerCommand("noteTags.refresh", () => provider.refresh())
@@ -96,38 +97,23 @@ function getWebviewContent(panel) {
   );
   const bundleUri = panel.webview.asWebviewUri(bundlePath);
 
-  const nonce = getNonce();
-
   return `
     <!DOCTYPE html>
- main
-    <html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>React Webview</title></head>
-    <body><div id="root"></div><script src="${bundleUri}"></script></body></html>
     <html lang="en">
     <head>
       <meta charset="UTF-8" />
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>React Webview</title>
     </head>
     <body>
       <div id="root"></div>
-      <script nonce="${nonce}" src="${bundleUri}"></script>
+      <script src="${bundleUri}"></script>
     </body>
     </html>
- main
   `;
-}
-
-function getNonce() {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
 }
 
 function deactivate() {}
 
 module.exports = { activate, deactivate };
+
