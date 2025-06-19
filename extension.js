@@ -1,9 +1,68 @@
 const vscode = require("vscode");
 const path = require("path");
 
+// Tag management functionality
+const tagMap = new Map();
+
+function extractTags(text) {
+  const regex = /#(\w+)/g;
+  const tags = new Set();
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    tags.add(match[1]);
+  }
+  return tags;
+}
+
+let provider; // Declare here to use in scanDocument
+
+function scanDocument(doc) {
+  if (doc.languageId !== "markdown") return;
+  const tags = extractTags(doc.getText());
+  tagMap.set(doc.uri.toString(), tags);
+  if (provider) provider.refresh();
+}
+
+// ─── Tree View Provider ────────────────────────────────────────────────────
+
+class TagTreeProvider {
+  constructor() {
+    this._onDidChange = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this._onDidChange.event;
+  }
+
+  refresh() {
+    this._onDidChange.fire();
+  }
+
+  getChildren(element) {
+    if (!element) {
+      return Array.from(tagMap.entries()).map(
+        ([uri, tags]) => {
+          const item = new vscode.TreeItem(
+            path.basename(uri),
+            vscode.TreeItemCollapsibleState.Collapsed
+          );
+          item.tooltip = uri;
+          return item;
+        }
+      );
+    }
+    const tags = tagMap.get(element.tooltip) || new Set();
+    return Array.from(tags).map(tag => new vscode.TreeItem(
+      `#${tag}`, vscode.TreeItemCollapsibleState.None
+    ));
+  }
+
+  getTreeItem(item) {
+    return item;
+  }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Webview-related function to create CSP-compliant HTML
 function activate(context) {
+  // Register Webview Command
   const disposable = vscode.commands.registerCommand(
     "extension.showReactWebview",
     function () {
@@ -34,6 +93,20 @@ function activate(context) {
   );
 
   context.subscriptions.push(disposable);
+
+  // Register Tag Detection Events
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument(scanDocument),
+    vscode.workspace.onDidSaveTextDocument(scanDocument)
+  );
+  vscode.workspace.textDocuments.forEach(scanDocument);
+
+  // Register Tree View
+  provider = new TagTreeProvider();
+  vscode.window.registerTreeDataProvider("noteTags", provider);
+  context.subscriptions.push(
+    vscode.commands.registerCommand("noteTags.refresh", () => provider.refresh())
+  );
 }
 
 // Generate nonce
