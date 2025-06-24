@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { jsPDF } from "jspdf";
 
 const translations = {
   english: {
@@ -65,6 +66,10 @@ const App = () => {
   const [selectedColor, setSelectedColor] = useState("#2B77BD");
   const [colorFormat, setColorFormat] = useState("hex");
   const [devTip, setDevTip] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [activeDownloadId, setActiveDownloadId] = useState(null);
+
+
 
   useEffect(() => {
     const saved = localStorage.getItem("my-vscode-notes");
@@ -102,6 +107,22 @@ const App = () => {
     setSavedNotes([]);
     setWarning("");
   };
+  const Downloadnotes = (format, content) => {
+    const file = `note_${new Date().toISOString().slice(0, 19)}.${format}`;
+    if (format === "pdf") {
+      const doc = new jsPDF();
+      const lines = doc.splitTextToSize(content, 180);
+      doc.text(lines, 10, 10);
+      doc.save(file);
+    } else {
+      const blob = new Blob([content], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = file;
+      link.click();
+    }
+  };
+  
 
   const togglePin = (id) => {
     setSavedNotes((prev) =>
@@ -157,6 +178,7 @@ const App = () => {
     border: darkMode ? "1px solid #555" : "1px solid #ccc",
   };
 
+
   return (
     <div style={styleContainer}>
       <h2 style={styles.heading}>📝 {translations[language].title}</h2>
@@ -177,7 +199,7 @@ const App = () => {
         <h3 style={styles.devHeading}>dev TIPS</h3>
         <p>{devTip}</p>
       </div>
-
+    
       <textarea
         placeholder={translations[language].placeholder}
         value={note}
@@ -199,16 +221,118 @@ const App = () => {
           {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
         </button>
       </div>
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "20px"
+      }}>
+        <h1 style={{
+          padding: "10px",
+          width: "fit-content",
+          borderRadius: "6px",
+          border: "1px solid #ccc",
+          fontSize: "15px"
+        }}>
+          SAVED NOTES
+        </h1>
+      </div>
 
       {warning && <div style={styles.warning}>{warning}</div>}
+      {savedNotes.length > 0 && (
+  <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+    <input
+      type="text"
+      placeholder={`🔍 ${"search your note"}`}
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      style={{
+        padding: "10px",
+        width: "100%",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        fontSize: "15px",
+      }}
+    />
+  </div>
+)}
+
 
       {savedNotes.length > 0 && (
         <div style={styleSavedNotes}>
           <strong>🗒️ {translations[language].saveNote}:</strong>
-          {savedNotes.map((n) => (
+          {savedNotes.filter((n) => n.content.toLowerCase().includes(searchQuery.toLowerCase()))
+            .map((n) => (
             <div key={n.id} style={styles.noteItem}>
               <div style={styles.noteContent}>
-                <p style={{ margin: 0, flex: 1 }}>{n.content}</p>
+                  <p style={{ margin: 0, flex: 1 }}>{n.content}</p>
+                  <div style={{ position: "relative", textAlign: "center", marginTop: "20px" }}>
+                  <button
+                        onClick={() =>
+                          setActiveDownloadId(activeDownloadId === n.id ? null : n.id)
+                        }
+                        style={{
+                          padding: "10px 20px",
+                          backgroundColor: "#007bff",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        ⬇️ Download
+                      </button>
+
+
+                      {activeDownloadId === n.id && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "110%",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          backgroundColor: "#fff",
+                          border: "1px solid #ccc",
+                          borderRadius: "6px",
+                          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                          zIndex: 10,
+                          padding: "10px",
+                          minWidth: "160px",
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            Downloadnotes("txt", n.content);
+                            setActiveDownloadId(null);
+                          }}
+                          style={styles.dropdownButtonStyle}
+                        >
+                           .txt
+                        </button>
+                        <button
+                          onClick={() => {
+                            Downloadnotes("md", n.content);
+                            setActiveDownloadId(null);
+                          }}
+                          style={styles.dropdownButtonStyle}
+                        >
+                           .md
+                        </button>
+                        <button
+                          onClick={() => {
+                            Downloadnotes("pdf", n.content);
+                            setActiveDownloadId(null);
+                          }}
+                          style={styles.dropdownButtonStyle}
+                        >
+                          .pdf
+                        </button>
+                      </div>
+                    )}
+
+                </div>
+
                 <button
                   onClick={() => togglePin(n.id)}
                   style={{
@@ -251,6 +375,7 @@ const App = () => {
           📋 Copy {colorFormat.toUpperCase()}
         </button>
       </div>
+     
     </div>
   );
 };
@@ -372,6 +497,21 @@ const styles = {
     letterSpacing: "0.1px",
     color: "#FFFFFF",
   },
+ dropdownButtonStyle : {
+    display: "block",
+    width: "100%",
+    padding: "8px 12px",
+    backgroundColor: "white",
+    color: "#333",
+    border: "none",
+    borderRadius: "4px",
+    textAlign: "left",
+    cursor: "pointer",
+    fontSize: "14px",
+    transition: "background-color 0.2s",
+    marginBottom: "5px",
+  }
+  
 };
 
 export default App;
