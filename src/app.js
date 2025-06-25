@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
-
+import StackOverflow from "./components/StackOverflow.jsx";
 const translations = {
   english: {
     title: "VS Code Notes",
@@ -375,6 +375,7 @@ const App = () => {
           📋 Copy {colorFormat.toUpperCase()}
         </button>
       </div>
+      <StackOverflow />
      
     </div>
   );
