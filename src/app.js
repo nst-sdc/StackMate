@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import StackOverflow from "./components/StackOverflow.jsx";
+import { jsPDF } from "jspdf";
 
 const translations = {
   english: {
@@ -117,6 +118,15 @@ const App = () => {
   const [selectedColor, setSelectedColor] = useState("#2B77BD");
   const [colorFormat, setColorFormat] = useState("hex");
   const [devTip, setDevTip] = useState("");
+<<<<<<< feat/color-picker
+=======
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [activeDownloadId, setActiveDownloadId] = useState(null);
+
+
+
+  // JSON Validator states
+>>>>>>> main
   const [jsonInput, setJsonInput] = useState("");
   const [jsonValidationResult, setJsonValidationResult] = useState("");
   const [beautifiedJson, setBeautifiedJson] = useState("");
@@ -131,7 +141,7 @@ const App = () => {
         setSavedNotes(JSON.parse(saved));
       }
     } catch (error) {
-      console.log("localStorage not available in VS Code context");
+      console.log(`localStorage not available in VS Code context ${error}`);
     }
   }, []);
 
@@ -139,7 +149,7 @@ const App = () => {
     try {
       localStorage.setItem("my-vscode-notes", JSON.stringify(savedNotes));
     } catch (error) {
-      console.log("localStorage not available in VS Code context");
+      console.log(`localStorage not available in VS Code context ${error}`);
     }
   }, [savedNotes]);
 
@@ -167,7 +177,7 @@ const App = () => {
     try {
       localStorage.removeItem("my-vscode-notes");
     } catch (error) {
-      console.log("localStorage not available in VS Code context");
+      console.log(`localStorage not available in VS Code context ${error}`);
     }
     setSavedNotes([]);
     setWarning("");
@@ -278,6 +288,22 @@ const App = () => {
     color: darkMode ? "#fff" : "#000",
     border: darkMode ? "1px solid #555" : "1px solid #ccc",
   };
+  const Downloadnotes = (format, content) => {
+    const file = `note_${new Date().toISOString().slice(0, 19)}.${format}`;
+    if (format === "pdf") {
+      const doc = new jsPDF();
+      const lines = doc.splitTextToSize(content, 180);
+      doc.text(lines, 10, 10);
+      doc.save(file);
+    } else {
+      const blob = new Blob([content], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = file;
+      link.click();
+    }
+  };
+  
 
   return (
     <div style={styleContainer}>
@@ -324,14 +350,104 @@ const App = () => {
       </div>
 
       {warning && <div style={styles.warning}>{warning}</div>}
+      {savedNotes.length > 0 && (
+  <div style={{ marginBottom: "15px" }}>
+    <input
+      type="text"
+      placeholder="🔍 Search Notes..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      style={{
+        width: "95%",
+        padding: "10px",
+        borderRadius: "8px",
+        border: "1px solid #ccc",
+        fontSize: "14px",
+        marginTop: "20px",
+        marginBottom: "10px",
+        backgroundColor: darkMode ? "#1e1e1e" : "#fff",
+        color: darkMode ? "#fff" : "#000",
+      }}
+    />
+  </div>
+)}
+
 
       {savedNotes.length > 0 && (
         <div style={styleSavedNotes}>
           <strong>🗒️ {translations[language].saveNote}:</strong>
-          {savedNotes.map((n) => (
+          {savedNotes.filter((n) =>
+            n.content.toLowerCase().includes(searchQuery.toLowerCase()))
+            .map((n) => (
             <div key={n.id} style={styles.noteItem}>
               <div style={styles.noteContent}>
-                <p style={{ margin: 0, flex: 1 }}>{n.content}</p>
+                  <p style={{ margin: 0, flex: 1 }}>{n.content}</p>
+
+                  <div style={{ position: "relative", display: "inline-block" }}>
+  <button
+    onClick={() =>
+      setActiveDownloadId(activeDownloadId === n.id ? null : n.id)
+    }
+    style={{
+      padding: "10px 20px",
+      backgroundColor: "#007bff",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      cursor: "pointer",
+      fontSize: "14px",
+    }}
+  >
+    ⬇️ Download
+  </button>
+
+  {activeDownloadId === n.id && (
+    <div
+      style={{
+        position: "absolute", // make it float
+        top: "110%",
+        left: "0",
+        backgroundColor: "#fff",
+        border: "1px solid #ccc",
+        borderRadius: "6px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        zIndex: 20,
+        padding: "10px",
+        minWidth: "120px",
+      }}
+    >
+      <button
+        onClick={() => {
+          Downloadnotes("txt", n.content);
+          setActiveDownloadId(null);
+        }}
+        style={styles.dropdownButtonStyle}
+      >
+        .txt
+      </button>
+      <button
+        onClick={() => {
+          Downloadnotes("md", n.content);
+          setActiveDownloadId(null);
+        }}
+        style={styles.dropdownButtonStyle}
+      >
+        .md
+      </button>
+      <button
+        onClick={() => {
+          Downloadnotes("pdf", n.content);
+          setActiveDownloadId(null);
+        }}
+        style={styles.dropdownButtonStyle}
+      >
+        .pdf
+      </button>
+    </div>
+  )}
+</div>
+
+
                 <button
                   onClick={() => togglePin(n.id)}
                   style={{
@@ -657,6 +773,7 @@ const styles = {
     letterSpacing: "0.1px",
     color: "#FFFFFF",
   },
+<<<<<<< feat/color-picker
   languageContainer: {
     display: "flex",
     justifyContent: "center",
@@ -668,6 +785,23 @@ const styles = {
     borderRadius: "4px",
     padding: "8px",
   },
+=======
+  dropdownButtonStyle: {
+    display: "block",
+    width: "100%",
+    padding: "8px 12px",
+    backgroundColor: "white",
+    color: "#333",
+    border: "none",
+    borderRadius: "4px",
+    textAlign: "left",
+    cursor: "pointer",
+    fontSize: "14px",
+    transition: "background-color 0.2s",
+    marginBottom: "5px",
+    zIndex : "20"
+  }
+>>>>>>> main
 };
 
 export default App;
