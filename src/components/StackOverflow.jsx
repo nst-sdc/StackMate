@@ -223,7 +223,7 @@ const styles = {
     fontSize: 26,
     fontWeight: 700,
     letterSpacing: 0.5,
-    color: "#222",
+    color: "#000000",
   },
   searchBoxWrapper: {
     position: "relative",
