@@ -1,5 +1,5 @@
 {
-  "name": "Stackmate",
+  "name": "stackmate",
   "displayName": "Stackmate",
   "icon": "extension_icon.png",
   "description": "A Multipurpose VS Code extension using React in Webview.",
