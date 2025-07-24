@@ -1,9 +1,9 @@
 {
   "name": "stackmate",
-  "displayName": "Stackmate",
+  "displayName": "StackMate",
   "icon": "extension_icon.png",
   "description": "A Multipurpose VS Code extension using React in Webview.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "Sakina",
   "license": "MIT",
   "repository": {

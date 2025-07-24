@@ -1,8 +1,6 @@
 # StackMate - VS Code Extension 
 ### Make your coding life easier with a single extension 
 
----
-
 A **multi-purpose Visual Studio Code extension** that opens a React-based webview to help you boost productivity — all **within VS Code**.   
 Take notes, validate JSON, explore Stack Overflow, view coding stats, and more — all in one place!
 ---
