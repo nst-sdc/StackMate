@@ -1,28 +1,26 @@
 const vscode = require("vscode");
 const path = require("path");
 const https = require("https");
-const { spawn } = require('child_process');
+const { spawn } = require("child_process");
 
 let panel;
 let backendProcess;
 function activate(context) {
-  // Start backend server
-  backendProcess = spawn('node', ['backend/server.js'], {
+  backendProcess = spawn("node", ["backend/server.js"], {
     cwd: __dirname,
-    stdio: 'inherit',
+    stdio: "inherit",
     shell: true,
   });
-  backendProcess.on('error', (err) => {
-    console.error('Failed to start backend:', err);
+  backendProcess.on("error", (err) => {
+    console.error("Failed to start backend:", err);
   });
 
-  // Show React Webview Command
   let showWebviewCommand = vscode.commands.registerCommand(
     "extension.showReactWebview",
     function () {
       if (panel) {
         panel.reveal();
-        return
+        return;
       }
       panel = vscode.window.createWebviewPanel(
         "reactWebview",
@@ -32,7 +30,7 @@ function activate(context) {
           enableScripts: true,
           localResourceRoots: [
             vscode.Uri.file(path.join(__dirname, "dist")),
-            vscode.Uri.file(path.join(__dirname, "public"))
+            vscode.Uri.file(path.join(__dirname, "public")),
           ],
           retainContextWhenHidden: true,
         }
@@ -47,15 +45,12 @@ function activate(context) {
         });
       }, 200);
 
-
-
       panel.webview.onDidReceiveMessage(
         (message) => {
           if (message.command === "alert") {
             vscode.window.showInformationMessage(message.text);
           }
 
-          // notes ko global state me save kare hai
           if (message.command === "saveNotes") {
             context.globalState.update("my-vscode-notes", message.payload);
           }
@@ -66,11 +61,9 @@ function activate(context) {
       panel.onDidDispose(() => {
         panel = null;
       });
-
     }
   );
 
-  // Stack Overflow Hover Command
   let stackOverflowCommand = vscode.commands.registerCommand(
     "extension.searchStackOverflow",
     () => {
@@ -81,7 +74,9 @@ function activate(context) {
       const selectedText = editor.document.getText(selection).trim();
 
       if (!selectedText) {
-        vscode.window.showInformationMessage("Please select some code to search.");
+        vscode.window.showInformationMessage(
+          "Please select some code to search."
+        );
         return;
       }
 
@@ -90,69 +85,154 @@ function activate(context) {
         hostname: "api.stackexchange.com",
         path: `/2.3/search/advanced?order=desc&sort=relevance&q=${query}&site=stackoverflow`,
         headers: {
-          "User-Agent": "vscode-extension"
-        }
+          "User-Agent": "vscode-extension",
+        },
       };
 
-      https.get(options, (res) => {
-        let data = "";
+      https
+        .get(options, (res) => {
+          let data = "";
 
-        res.on("data", (chunk) => {
-          data += chunk;
-        });
+          res.on("data", (chunk) => {
+            data += chunk;
+          });
 
-        res.on("end", () => {
-          try {
-            const parsed = JSON.parse(data);
+          res.on("end", () => {
+            try {
+              const parsed = JSON.parse(data);
 
-            if (parsed.error_message) {
-              vscode.window.showErrorMessage(
-                `Stack Overflow API Error: ${parsed.error_message}`
+              if (parsed.error_message) {
+                vscode.window.showErrorMessage(
+                  `Stack Overflow API Error: ${parsed.error_message}`
+                );
+                return;
+              }
+
+              if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
+                vscode.window.showInformationMessage(
+                  "No results found on Stack Overflow."
+                );
+                return;
+              }
+
+              const topResults = parsed.items.slice(0, 3);
+              const markdown = new vscode.MarkdownString(
+                topResults
+                  .map(
+                    (item, idx) =>
+                      `**${idx + 1}. [${item.title}](${item.link})**`
+                  )
+                  .join("\n\n")
               );
-              return;
+              markdown.isTrusted = true;
+
+              const hover = new vscode.Hover(markdown);
+
+              const provider = {
+                provideHover() {
+                  return hover;
+                },
+              };
+
+              const disposableHover = vscode.languages.registerHoverProvider(
+                "*",
+                provider
+              );
+              context.subscriptions.push(disposableHover);
+
+              vscode.window.showInformationMessage(
+                " Hover over the selected code to see Stack Overflow results."
+              );
+            } catch (err) {
+              vscode.window.showErrorMessage(
+                " Error parsing Stack Overflow response."
+              );
+              console.error("Raw Response:", data);
+              console.error(err);
             }
-
-            if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
-              vscode.window.showInformationMessage("No results found on Stack Overflow.");
-              return;
-            }
-
-            const topResults = parsed.items.slice(0, 3);
-            const markdown = new vscode.MarkdownString(
-              topResults
-                .map((item, idx) => `**${idx + 1}. [${item.title}](${item.link})**`)
-                .join("\n\n")
-            );
-            markdown.isTrusted = true;
-
-            const hover = new vscode.Hover(markdown);
-
-            const provider = {
-              provideHover() {
-                return hover;
-              },
-            };
-
-            const disposableHover = vscode.languages.registerHoverProvider("*", provider);
-            context.subscriptions.push(disposableHover);
-
-            vscode.window.showInformationMessage(
-              " Hover over the selected code to see Stack Overflow results."
-            );
-          } catch (err) {
-            vscode.window.showErrorMessage(" Error parsing Stack Overflow response.");
-            console.error("Raw Response:", data);
-            console.error(err);
-          }
+          });
+        })
+        .on("error", (err) => {
+          vscode.window.showErrorMessage(" HTTPS request failed.");
+          console.error(err);
         });
-      }).on("error", (err) => {
-        vscode.window.showErrorMessage(" HTTPS request failed.");
-        console.error(err);
+    }
+  );
+
+  let pluginManagerCommand = vscode.commands.registerCommand(
+    "extension.openPluginManager",
+    function () {
+      if (panel) {
+        panel.reveal();
+        panel.webview.postMessage({
+          command: "switchView",
+          view: "plugins",
+        });
+        return;
+      }
+
+      // Create webview and switch to plugins
+      vscode.commands.executeCommand("extension.showReactWebview").then(() => {
+        setTimeout(() => {
+          if (panel) {
+            panel.webview.postMessage({
+              command: "switchView",
+              view: "plugins",
+            });
+          }
+        }, 500);
       });
     }
   );
 
-  context.subscriptions.push(showWebviewCommand, stackOverflowCommand);
+  // ESLint Command
+  let eslintCommand = vscode.commands.registerCommand(
+    "extension.runESLint",
+    function () {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showInformationMessage("No active editor found.");
+        return;
+      }
+
+      const code = editor.document.getText();
+      const filename = editor.document.fileName;
+
+      if (panel) {
+        panel.webview.postMessage({
+          command: "runESLint",
+          payload: { code, filename },
+        });
+        panel.reveal();
+      } else {
+        vscode.commands.executeCommand("extension.openPluginManager");
+      }
+    }
+  );
+
+  // Test Runner Command
+  let testCommand = vscode.commands.registerCommand(
+    "extension.runTests",
+    function () {
+      if (panel) {
+        panel.webview.postMessage({
+          command: "runTests",
+          payload: {},
+        });
+        panel.reveal();
+      } else {
+        vscode.commands.executeCommand("extension.openPluginManager");
+      }
+    }
+  );
+
+  context.subscriptions.push(
+    showWebviewCommand,
+    stackOverflowCommand,
+    pluginManagerCommand,
+    eslintCommand,
+    testCommand
+  );
 }
 
 function getWebviewContent(panel) {
@@ -197,7 +277,8 @@ function getWebviewContent(panel) {
 }
 
 function getNonce() {
-  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   return Array.from({ length: 32 }, () =>
     possible.charAt(Math.floor(Math.random() * possible.length))
   ).join("");
