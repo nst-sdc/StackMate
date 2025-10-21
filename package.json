@@ -15,7 +15,10 @@
   },
   "activationEvents": [
     "onCommand:extension.showReactWebview",
-    "onCommand:extension.searchStackOverflow"
+    "onCommand:extension.searchStackOverflow",
+    "onCommand:extension.openPluginManager",
+    "onCommand:extension.runESLint",
+    "onCommand:extension.runTests"
   ],
   "main": "extension.js",
   "contributes": {
@@ -27,6 +30,18 @@
       {
         "command": "extension.searchStackOverflow",
         "title": "Search Stack Overflow"
+      },
+      {
+        "command": "extension.openPluginManager",
+        "title": "Open Plugin Manager"
+      },
+      {
+        "command": "extension.runESLint",
+        "title": "Run ESLint"
+      },
+      {
+        "command": "extension.runTests",
+        "title": "Run Tests"
       }
     ],
     "keybindings": [
@@ -43,11 +58,11 @@
     ]
   },
   "scripts": {
-    "start": "webpack serve --mode development",
-    "build": "webpack",
-    "watch": "webpack --watch",
-    "serve-backend": "node backend/server.js"
-  },
+  "start": "webpack --watch",
+  "build": "webpack",
+  "serve-backend": "node backend/server.js"
+},
+
   "categories": [
     "Other"
   ],
@@ -58,8 +73,10 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "recharts": "^3.1.0",
-    "react-colorful": "^5.6.1"
-
+    "react-colorful": "^5.6.1",
+    "@octokit/rest": "^20.0.2",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.27.7",

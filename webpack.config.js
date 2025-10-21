@@ -8,7 +8,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js", // will output bundle.js
-    publicPath: './',
+    publicPath: "./",
   },
   devtool: "source-map",
   module: {
@@ -31,5 +31,14 @@ module.exports = {
   },
   optimization: {
     splitChunks: false,
+  },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, "public"),
+    },
+    compress: true,
+    port: 8080,
+    historyApiFallback: true,
+    open: false,
   },
 };

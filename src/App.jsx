@@ -9,6 +9,7 @@ import {
   Languages,
   BrushCleaning,
   ChartNoAxesCombined,
+  Puzzle,
 } from "lucide-react";
 
 import LanguageSelector from "./components/LanguageSelector";
@@ -23,11 +24,13 @@ import InternetCheck from "./components/ConnectionStatus";
 
 import CleanupTool from "./components/CleanupTool.jsx";
 import CodingStats from "./components/CodingStats.jsx";
+import PluginManager from "./components/PluginManager.jsx";
 
 import { translations } from "./utils/translations.js";
 import { useNotes } from "./utils/useNotes.js";
 
 import "./App.css";
+import "./components/PluginManager.css";
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -56,10 +59,7 @@ const App = () => {
 
     handleDeleteNote,
 
-
     handleEditNote,
-
-
   } = useNotes();
 
   const commonProps = { darkMode, language, translations };
@@ -107,6 +107,18 @@ const App = () => {
           case "notes":
             setActiveView("notes");
             break;
+          case "plugins":
+            setActiveView("plugins");
+            break;
+          case "github":
+            setActiveView("plugins");
+            break;
+          case "eslint":
+            setActiveView("plugins");
+            break;
+          case "test":
+            setActiveView("plugins");
+            break;
           default:
             setActiveView("notes");
         }
@@ -148,16 +160,13 @@ const App = () => {
             </div>
             <div className="tool-container">
               <SavedNotes
-
-                savedNotes={savedNotes} 
-
-                onRenameNote={handleRenameNote}   //1
-                onDeleteNote={handleDeleteNote}   //2
-                onEditNoteContent={handleEditNote}  //3   1,2,3,5,4 teeno useNotes.jsx se aa raha hai 
-                onTogglePin={togglePin}  //4
-                searchquery={triggerType === "notes" ? queryText : ""}  //5
-                {...commonProps}  // top me defined hai
-
+                savedNotes={savedNotes}
+                onRenameNote={handleRenameNote} //1
+                onDeleteNote={handleDeleteNote} //2
+                onEditNoteContent={handleEditNote} //3   1,2,3,5,4 teeno useNotes.jsx se aa raha hai
+                onTogglePin={togglePin} //4
+                searchquery={triggerType === "notes" ? queryText : ""} //5
+                {...commonProps} // top me defined hai
               />
             </div>
           </div>
@@ -190,6 +199,12 @@ const App = () => {
         return (
           <div className="tool-container">
             <CodingStats {...commonProps} />
+          </div>
+        );
+      case "plugins":
+        return (
+          <div className="tool-container">
+            <PluginManager {...commonProps} />
           </div>
         );
       default:
@@ -234,6 +249,15 @@ const App = () => {
           <div className="tool-card-content">
             <ChartNoAxesCombined className="tool-icon" />
             <h3 className="tool-title">Coding Stats</h3>
+          </div>
+        </div>
+        <div
+          onClick={() => handleToolClick("plugins")}
+          className="tool-card featured"
+        >
+          <div className="tool-card-content">
+            <Puzzle className="tool-icon" />
+            <h3 className="tool-title">Plugin Manager</h3>
           </div>
         </div>
       </div>
@@ -320,7 +344,7 @@ const App = () => {
               value={searchQuery}
               onChange={handleSearchChange}
               onKeyDown={handleKeyDown}
-              placeholder="search with @stack @json @notes ..."
+              placeholder="search with @stack @json @notes @plugins @github @eslint @test ..."
               rows={1}
               style={{
                 position: "relative",
@@ -340,7 +364,15 @@ const App = () => {
             />
             {showSuggestions && (
               <ul className="trigger-suggestions">
-                {["@stack", "@json", "@notes"].map((trigger) => (
+                {[
+                  "@stack",
+                  "@json",
+                  "@notes",
+                  "@plugins",
+                  "@github",
+                  "@eslint",
+                  "@test",
+                ].map((trigger) => (
                   <li
                     key={trigger}
                     onClick={() => handleSuggestionClick(trigger)}
