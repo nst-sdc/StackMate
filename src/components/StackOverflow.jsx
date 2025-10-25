@@ -17,6 +17,7 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
   // AI summary states
   const [acceptedAnswerSummary, setAcceptedAnswerSummary] = useState("");
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summarySource, setSummarySource] = useState("accepted"); 
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -66,14 +67,16 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
       setSelectedQuestion(qData.items[0]);
       setAnswers(aData.items);
 
-      // Summarize accepted answer
-      const accepted = aData.items.find((ans) => ans.is_accepted);
-      if (accepted) {
+      // ✅ NEW LOGIC (choose accepted OR fallback to best-voted)
+      const accepted = aData.items.find((a) => a.is_accepted);
+      const answerForSummary = accepted || aData.items[0];
+      setSummarySource(accepted ? "accepted" : "fallback");
+      if (answerForSummary) {
         setSummaryLoading(true);
         fetch("http://localhost:5070/api/summarize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ answerText: accepted.body }),
+          body: JSON.stringify({ answerText: answerForSummary.body }),
         })
           .then((res) => res.json())
           .then((data) => {
@@ -406,18 +409,21 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
         </div>
       )}
 
-      {/* Accepted Answer Summary */}
+      {/* Answer Summary */}
       {summaryLoading && (
-        <p style={{
+        <p
+          style={{
             marginTop: 12,
             padding: 14,
             borderRadius: 10,
             background: "#393552",
             color: "#fff",
-          }}>
+          }}
+        >
           Generating summary...
         </p>
       )}
+
       {acceptedAnswerSummary && (
         <div
           style={{
@@ -428,8 +434,12 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
             color: "#fff",
           }}
         >
-          <strong style={{color: "#c3d10bff",}}>Accepted Answer Summary:</strong>
-          <p>{acceptedAnswerSummary}</p>
+          <strong style={{ color: "#c3d10bff" }}>
+            {summarySource === "accepted"
+              ? "Accepted Answer Summary:"
+              : "Top Voted Answer Summary:"}
+          </strong>
+          <p style={{ marginTop: 6 }}>{acceptedAnswerSummary}</p>
         </div>
       )}
 
