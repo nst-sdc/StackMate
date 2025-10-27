@@ -14,6 +14,11 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
   const [answers, setAnswers] = useState([]);
   const [currentAnswerIndex, setCurrentAnswerIndex] = useState(0);
 
+  // AI summary states
+  const [acceptedAnswerSummary, setAcceptedAnswerSummary] = useState("");
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summarySource, setSummarySource] = useState("accepted"); 
+
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (query.trim().length < 3) {
@@ -37,16 +42,17 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
   }, [query]);
 
   useEffect(() => {
-    if (initialQuery) {
-      setQuery(initialQuery);
-    }
+    if (initialQuery) setQuery(initialQuery);
   }, [initialQuery]);
 
   const handleSelectQuestion = async (question) => {
     setSelectedQuestion(null);
     setAnswers([]);
     setCurrentAnswerIndex(0);
+    setAcceptedAnswerSummary("");
+    setSummaryLoading(false);
     setSuggestions([]);
+
     try {
       const [qRes, aRes] = await Promise.all([
         fetch(
@@ -60,17 +66,38 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
       const aData = await aRes.json();
       setSelectedQuestion(qData.items[0]);
       setAnswers(aData.items);
+
+      // ✅ NEW LOGIC (choose accepted OR fallback to best-voted)
+      const accepted = aData.items.find((a) => a.is_accepted);
+      const answerForSummary = accepted || aData.items[0];
+      setSummarySource(accepted ? "accepted" : "fallback");
+      if (answerForSummary) {
+        setSummaryLoading(true);
+        fetch("http://localhost:5070/api/summarize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answerText: answerForSummary.body }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            setAcceptedAnswerSummary(data.summary);
+            setSummaryLoading(false);
+          })
+          .catch(() => setSummaryLoading(false));
+      }
     } catch (err) {
       console.error("Error fetching StackOverflow data:", err);
     }
   };
+
+  // Styles
   const headingStyle = {
-    fontSize: "24px",
-    marginBottom: "20px",
+    fontSize: 24,
+    marginBottom: 20,
     color: "#e0b3ff",
     textAlign: "center",
     borderBottom: "2px solid rgba(255,255,255,0.15)",
-    paddingBottom: "10px",
+    paddingBottom: 10,
     fontWeight: 700,
   };
   const inputStyle = {
@@ -235,8 +262,8 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
     padding: "10px 16px",
     borderRadius: "8px",
     cursor: "pointer",
-    fontWeight: "600",
-    fontSize: "18px",
+    fontWeight: 600,
+    fontSize: 18,
     transition: "all 0.2s ease",
     boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
     outline: "none",
@@ -270,13 +297,14 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
     fontWeight: 600,
   };
 
+  // For suggestion hover rerender
+  const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
   React.useEffect(() => {
     const rerender = () => forceUpdate((n) => n + 1);
     window.addEventListener("hoveredSuggestionChange", rerender);
     return () =>
       window.removeEventListener("hoveredSuggestionChange", rerender);
   }, []);
-  const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
 
   return (
     <div>
@@ -319,14 +347,14 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
                     idx === suggestions.length - 1 ? 12 : 0,
                 }}
                 onClick={() => handleSelectQuestion(s)}
-                onMouseEnter={() =>
-                  (window.__hoveredSuggestion = idx) &&
-                  window.dispatchEvent(new Event("hoveredSuggestionChange"))
-                }
-                onMouseLeave={() =>
-                  (window.__hoveredSuggestion = null) &&
-                  window.dispatchEvent(new Event("hoveredSuggestionChange"))
-                }
+                onMouseEnter={() => {
+                  window.__hoveredSuggestion = idx;
+                  window.dispatchEvent(new Event("hoveredSuggestionChange"));
+                }}
+                onMouseLeave={() => {
+                  window.__hoveredSuggestion = null;
+                  window.dispatchEvent(new Event("hoveredSuggestionChange"));
+                }}
               >
                 <strong style={suggestionTitleStyle}>{s.title}</strong>
                 <div style={suggestionMetaStyle}>
@@ -347,6 +375,7 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
           </div>
         )}
       </div>
+
       {selectedQuestion && (
         <div style={cardStyle}>
           <h3 style={questionTitleStyle}>{selectedQuestion.title}</h3>
@@ -379,6 +408,41 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
           />
         </div>
       )}
+
+      {/* Answer Summary */}
+      {summaryLoading && (
+        <p
+          style={{
+            marginTop: 12,
+            padding: 14,
+            borderRadius: 10,
+            background: "#393552",
+            color: "#fff",
+          }}
+        >
+          Generating summary...
+        </p>
+      )}
+
+      {acceptedAnswerSummary && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: 14,
+            borderRadius: 10,
+            background: "#393552",
+            color: "#fff",
+          }}
+        >
+          <strong style={{ color: "#c3d10bff" }}>
+            {summarySource === "accepted"
+              ? "Accepted Answer Summary:"
+              : "Top Voted Answer Summary:"}
+          </strong>
+          <p style={{ marginTop: 6 }}>{acceptedAnswerSummary}</p>
+        </div>
+      )}
+
       {answers.length > 0 && (
         <div style={carouselStyle}>
           <div style={carouselHeaderStyle}>
@@ -416,7 +480,7 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
                     gap: 6,
                   }}
                 >
-                  <CheckCheck size={16} style={{ verticalAlign: "middle" }} />
+                  <CheckCheck size={16} />
                   Accepted Answer
                 </span>
               ) : (
@@ -425,7 +489,7 @@ const StackOverflow = ({ query: initialQuery = "", darkMode }) => {
                 </span>
               )}
               <span style={answerScoreStyle}>
-                <ArrowBigUp size={16} style={{ verticalAlign: "middle" }} />
+                <ArrowBigUp size={16} />
                 <span style={{ marginLeft: 4 }}>
                   {answers[currentAnswerIndex].score}
                 </span>

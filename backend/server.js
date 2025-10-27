@@ -5,7 +5,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { findTempFiles } from "./cleanupScanner.js";
-
+import { summarizeAnswer } from "./summarizer.js";
+import dotenv from "dotenv";
+dotenv.config(); 
+console.log("🔑 GEMINI KEY:", process.env.GEMINI_API_KEY ? "Loaded ✅" : "NOT FOUND ❌");
 import {
   startSession,
   stopSession,
@@ -115,6 +118,15 @@ app.delete("/delete-temp", (req, res) => {
 
   res.json({ deleted });
 });
+
+app.post("/api/summarize", async (req, res) => {
+  const { answerText } = req.body;
+  if (!answerText) return res.status(400).json({ summary: "Missing answerText" });
+
+  const summary = await summarizeAnswer(answerText);
+  res.json({ summary });
+});
+
 
 app.listen(PORT, () => {
   console.log(`Cleanup API running at http://localhost:${PORT}`);
