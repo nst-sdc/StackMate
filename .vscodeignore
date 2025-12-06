@@ -1,6 +1,10 @@
 node_modules
 .vscode
-dist
+src
 public
 *.log
 *.env
+.babelrc
+webpack.config.js
+*.map
+*.LICENSE.txt
